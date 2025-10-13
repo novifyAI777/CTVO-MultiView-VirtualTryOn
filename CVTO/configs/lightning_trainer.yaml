@@ -1,0 +1,182 @@
+# PyTorch Lightning Trainer Configuration
+# Configuration for PyTorch Lightning trainer settings
+
+# Trainer Settings
+trainer:
+  # Basic settings
+  max_epochs: 200
+  gpus: 1
+  precision: 16
+  accumulate_grad_batches: 1
+  gradient_clip_val: 1.0
+  
+  # Logging
+  log_every_n_steps: 50
+  val_check_interval: 0.5
+  
+  # Checkpointing
+  default_root_dir: "checkpoints"
+  save_top_k: 3
+  monitor: "val_loss"
+  mode: "min"
+  
+  # Resume
+  resume_from_checkpoint: null
+  
+  # Deterministic training
+  deterministic: false
+  
+  # Benchmark
+  benchmark: true
+  
+  # Progress bar
+  progress_bar_refresh_rate: 1
+  
+  # Fast dev run (for debugging)
+  fast_dev_run: false
+  
+  # Overfit batch (for debugging)
+  overfit_batches: 0.0
+
+# Callbacks
+callbacks:
+  # Model checkpoint callback
+  model_checkpoint:
+    dirpath: "checkpoints"
+    filename: "{epoch:02d}-{val_loss:.4f}"
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 3
+    save_last: true
+    save_on_train_epoch_end: false
+  
+  # Early stopping callback
+  early_stopping:
+    monitor: "val_loss"
+    mode: "min"
+    patience: 20
+    min_delta: 0.001
+    verbose: true
+  
+  # Learning rate monitor
+  lr_monitor:
+    logging_interval: "epoch"
+    log_momentum: true
+  
+  # Rich progress bar
+  rich_progress_bar:
+    leave: true
+    refresh_rate: 1
+
+# Logging
+logging:
+  # TensorBoard
+  tensorboard:
+    log_dir: "logs/tensorboard"
+    log_graph: true
+    log_images: true
+    log_histograms: true
+  
+  # CSV logging
+  csv:
+    log_dir: "logs/csv"
+  
+  # WandB (optional)
+  wandb:
+    project: "ctvo"
+    name: "ctvo-training"
+    tags: ["virtual-try-on", "ctvo"]
+    log_model: true
+    save_dir: "logs/wandb"
+
+# Data Module Settings
+data_module:
+  batch_size: 8
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  
+  # Data splitting
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+  
+  # Data augmentation
+  augmentation:
+    enabled: true
+    random_crop: true
+    random_flip: true
+    color_jitter: true
+    brightness: 0.1
+    contrast: 0.1
+    saturation: 0.1
+    hue: 0.05
+
+# Optimization Settings
+optimization:
+  # Optimizer
+  optimizer:
+    type: "Adam"
+    lr: 0.0002
+    betas: [0.5, 0.999]
+    weight_decay: 0.0001
+  
+  # Learning rate scheduler
+  lr_scheduler:
+    type: "StepLR"
+    step_size: 100
+    gamma: 0.5
+  
+  # Gradient clipping
+  gradient_clip_val: 1.0
+  gradient_clip_algorithm: "norm"
+
+# Model Settings
+model:
+  # Model checkpointing
+  checkpoint:
+    save_dir: "checkpoints"
+    filename: "{epoch:02d}-{val_loss:.4f}"
+    monitor: "val_loss"
+    mode: "min"
+    save_top_k: 3
+  
+  # Model compilation (PyTorch 2.0+)
+  compile:
+    enabled: false
+    mode: "default"
+  
+  # Model parallelization
+  parallel:
+    strategy: "auto"  # "auto", "ddp", "ddp_spawn", etc.
+    devices: "auto"
+    num_nodes: 1
+
+# Debugging Settings
+debugging:
+  # Fast dev run
+  fast_dev_run: false
+  
+  # Overfit batch
+  overfit_batches: 0.0
+  
+  # Limit train batches
+  limit_train_batches: 1.0
+  
+  # Limit val batches
+  limit_val_batches: 1.0
+  
+  # Limit test batches
+  limit_test_batches: 1.0
+  
+  # Limit predict batches
+  limit_predict_batches: 1.0
+  
+  # Val check interval
+  val_check_interval: 0.5
+  
+  # Log every n steps
+  log_every_n_steps: 50
+  
+  # Progress bar refresh rate
+  progress_bar_refresh_rate: 1

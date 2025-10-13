@@ -1,0 +1,44 @@
+# Base Configuration for CTVO Pipeline
+# This file contains common configuration parameters used across all stages
+
+# General Settings
+project_name: "CTVO"
+version: "2.0"
+device: "cuda"  # "cuda" or "cpu"
+seed: 42
+
+# Image Settings
+image_size: [256, 192]  # [height, width]
+image_channels: 3
+normalize_images: true
+
+# Training Settings
+batch_size: 8
+learning_rate: 0.0002
+num_epochs: 200
+save_checkpoint_every: 10
+validate_every: 5
+
+# Data Settings
+data_dir: "data"
+results_dir: "results"
+checkpoints_dir: "checkpoints"
+
+# Logging Settings
+log_level: "INFO"
+log_every_n_steps: 50
+save_logs: true
+
+# Model Settings
+pretrained_models:
+  parsing_model: "ctvo_core/stage1_parsing_pose/pretrained_models/parsing_lip.onnx"
+  pose_model: "ctvo_core/stage1_parsing_pose/pretrained_models/body_pose_model.pth"
+  warp_model: "ctvo_core/stage2_cloth_warping/pretrained_weights/unet_wrap.pth"
+
+# Loss Weights
+loss_weights:
+  l1: 1.0
+  perceptual: 10.0
+  style: 1.0
+  mask: 5.0
+  adversarial: 1.0

@@ -1,0 +1,139 @@
+# Stage 3 Fusion Configuration
+# Configuration for Stage 3: Fusion Generation
+
+# Inherit from base config
+_base_: "base.yaml"
+
+# Stage-specific settings
+stage: "stage3_fusion"
+model_type: "fusion"  # "generator" or "fusion"
+
+# Model Architecture
+model:
+  type: "FusionNet"
+  input_channels:
+    person: 3
+    cloth: 3
+    mask: 3
+    pose: 3
+  output_channels: 3
+  hidden_dim: 256
+  num_layers: 8
+  attention_layers: [3, 8, 15, 22]
+
+# Training Settings
+training:
+  batch_size: 4
+  learning_rate: 0.0002
+  num_epochs: 200
+  beta1: 0.5
+  beta2: 0.999
+  weight_decay: 0.0001
+  
+  # Learning rate scheduling
+  lr_scheduler:
+    type: "StepLR"
+    step_size: 100
+    gamma: 0.5
+  
+  # Gradient clipping
+  gradient_clip_val: 1.0
+  
+  # Mixed precision training
+  precision: 16
+
+# Loss Configuration
+losses:
+  l1_weight: 1.0
+  perceptual_weight: 10.0
+  style_weight: 1.0
+  mask_weight: 5.0
+  adversarial_weight: 1.0
+  
+  # Perceptual loss settings
+  perceptual:
+    feature_layers: [3, 8, 15, 22]
+    weights: [1.0, 1.0, 1.0, 1.0]
+    normalize: true
+  
+  # Style loss settings
+  style:
+    feature_layers: [3, 8, 15, 22]
+    weights: [1.0, 1.0, 1.0, 1.0]
+  
+  # Mask loss settings
+  mask:
+    clothing_labels: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+    adaptive_weights: true
+
+# Data Settings
+data:
+  train_data_dir: "data/custom_dataset/train"
+  val_data_dir: "data/custom_dataset/test"
+  batch_size: 4
+  num_workers: 4
+  pin_memory: true
+  
+  # Data augmentation
+  augmentation:
+    random_crop: true
+    random_flip: true
+    color_jitter: true
+    brightness: 0.1
+    contrast: 0.1
+    saturation: 0.1
+    hue: 0.05
+
+# Validation Settings
+validation:
+  val_check_interval: 0.5
+  save_top_k: 3
+  monitor: "val/total_loss"
+  mode: "min"
+  
+  # Metrics to track
+  metrics:
+    - "psnr"
+    - "ssim"
+    - "lpips"
+
+# Checkpointing
+checkpointing:
+  save_dir: "checkpoints/stage3_fusion"
+  filename: "stage3_fusion_{epoch:02d}_{val_loss:.4f}"
+  save_last: true
+  save_top_k: 3
+  
+  # Resume from checkpoint
+  resume_from_checkpoint: null
+
+# Logging
+logging:
+  log_dir: "logs/stage3_fusion"
+  log_every_n_steps: 50
+  val_log_every_n_epochs: 1
+  
+  # TensorBoard logging
+  tensorboard:
+    log_dir: "logs/stage3_fusion/tensorboard"
+    log_graph: true
+  
+  # WandB logging (optional)
+  wandb:
+    project: "ctvo-stage3"
+    name: "fusion_training"
+    tags: ["stage3", "fusion", "virtual-try-on"]
+
+# Evaluation Settings
+evaluation:
+  output_dir: "results/stage3_previews"
+  save_images: true
+  save_metrics: true
+  num_samples: 100
+  
+  # Metrics to compute
+  metrics:
+    - "psnr"
+    - "ssim"
+    - "lpips"
+    - "fid"

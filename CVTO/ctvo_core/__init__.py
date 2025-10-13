@@ -1,0 +1,21 @@
+"""
+CTVO Core Package - Hybrid Architecture for Virtual Try-On
+
+This package contains the modular implementation of the CTVO pipeline:
+- Stage 1: Human Parsing & Pose Estimation
+- Stage 2: Cloth Warping
+- Stage 3: Fusion Generation
+- Stage 4: NeRF-based Multi-view Rendering
+
+Author: CTVO Team
+Version: 2.0
+"""
+
+__version__ = "2.0.0"
+__author__ = "CTVO Team"
+
+# Import main modules for easy access
+from .stage1_parsing_pose import *
+from .stage2_cloth_warping import *
+from .stage3_fusion import *
+from .stage4_nerf import *

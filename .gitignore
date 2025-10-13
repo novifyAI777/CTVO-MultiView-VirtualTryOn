@@ -1,0 +1,194 @@
+# ===============================================================
+# CTVO Project .gitignore
+# Comprehensive ignore file for Python ML & Virtual Try-On system
+# ===============================================================
+
+# -----------------------------------
+# Python cache and compiled artifacts
+# -----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.dll
+*.manifest
+*.spec
+
+# -----------------------------------
+# Build / Packaging / Distribution
+# -----------------------------------
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# -----------------------------------
+# Logs / Coverage / Tests
+# -----------------------------------
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+test_outputs/
+test_results/
+
+# -----------------------------------
+# Virtual environments
+# -----------------------------------
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+ctvo_env/                # Ignore your local virtual environment
+
+# -----------------------------------
+# Project-specific directories
+# -----------------------------------
+data/raw/
+data/processed/
+data/synthetic_augmented/
+data/marquis_viton_hd/
+data/custom_dataset/
+data/multiview_dataset/
+results/
+checkpoints/
+logs/
+outputs/
+samples/
+previews/
+
+# Keep structure placeholders
+!data/**/.gitkeep
+!results/.gitkeep
+!checkpoints/.gitkeep
+!logs/.gitkeep
+
+# -----------------------------------
+# Models / Weights
+# -----------------------------------
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.pickle
+*.onnx
+*.h5
+*.hdf5
+*.pb
+
+ctvo_core/**/pretrained_models/
+ctvo_core/**/pretrained_weights/
+
+# -----------------------------------
+# IDEs and editors
+# -----------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------
+# Documentation
+# -----------------------------------
+docs/_build/
+docs/build/
+
+# -----------------------------------
+# Miscellaneous OS junk
+# -----------------------------------
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+$RECYCLE.BIN/
+*.tmp
+*.temp
+*.bak
+*.backup
+core.*
+*.dmp
+
+# -----------------------------------
+# Configuration and secrets
+# -----------------------------------
+config_local.yaml
+secrets.yaml
+.env.local
+.env.production
+
+# -----------------------------------
+# ML logs and experiment tracking
+# -----------------------------------
+wandb/
+runs/
+tensorboard_logs/
+lightning_logs/
+best_model.ckpt
+last_model.ckpt
+
+# -----------------------------------
+# Large archives
+# -----------------------------------
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# -----------------------------------
+# Annotation / metadata
+# -----------------------------------
+data/annotations/*.json
+data/annotations/*.csv
+data/annotations/*.txt
+
+!data/annotations/.gitkeep
+
+# -----------------------------------
+# Exclude internal git data
+# -----------------------------------
+.git/
+# Allow the ignore file itself to be versioned
+!.gitignore
+
+# -----------------------------------
+# Ignore notebooks outputs (optional)
+# -----------------------------------
+*.ipynb_checkpoints/
+*.ipynb

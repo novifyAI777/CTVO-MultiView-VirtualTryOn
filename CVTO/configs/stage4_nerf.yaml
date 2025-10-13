@@ -1,0 +1,176 @@
+# Stage 4 NeRF Configuration
+# Configuration for Stage 4: NeRF Multi-view Generation
+
+# Inherit from base config
+_base_: "base.yaml"
+
+# Stage-specific settings
+stage: "stage4_nerf"
+model_type: "nerf"
+
+# Model Architecture
+model:
+  type: "NeRFModel"
+  
+  # Positional encoding
+  pos_encoding:
+    input_dim: 3
+    num_frequencies: 10
+  
+  # Direction encoding
+  dir_encoding:
+    input_dim: 3
+    num_frequencies: 4
+  
+  # MLP architecture
+  mlp:
+    hidden_dim: 256
+    num_layers: 8
+    skip_layer: 4
+    output_dim: 4  # RGB + density
+  
+  # Volume rendering
+  volume_rendering:
+    near: 0.0
+    far: 1.0
+    num_samples: 64
+    chunk_size: 1024
+
+# Training Settings
+training:
+  batch_size: 1
+  learning_rate: 0.0005
+  num_epochs: 1000
+  beta1: 0.9
+  beta2: 0.999
+  weight_decay: 0.0
+  
+  # Learning rate scheduling
+  lr_scheduler:
+    type: "CosineAnnealingLR"
+    T_max: 1000
+  
+  # Gradient clipping
+  gradient_clip_val: 1.0
+  
+  # Mixed precision training
+  precision: 32
+
+# Loss Configuration
+losses:
+  rgb_weight: 1.0
+  depth_weight: 0.1
+  
+  # RGB loss
+  rgb_loss:
+    type: "mse"
+    reduction: "mean"
+  
+  # Depth loss (if depth supervision available)
+  depth_loss:
+    type: "l1"
+    reduction: "mean"
+
+# Data Settings
+data:
+  train_data_dir: "data/synthetic_augmented"
+  val_data_dir: "data/custom_dataset/test"
+  batch_size: 1
+  num_workers: 4
+  pin_memory: true
+  
+  # Camera settings
+  camera:
+    focal_length: 500.0
+    image_size: [256, 192]
+    near: 0.0
+    far: 1.0
+  
+  # Ray sampling
+  ray_sampling:
+    num_samples: 64
+    chunk_size: 1024
+    white_background: true
+
+# Validation Settings
+validation:
+  val_check_interval: 0.1
+  save_top_k: 3
+  monitor: "val/total_loss"
+  mode: "min"
+  
+  # Metrics to track
+  metrics:
+    - "psnr"
+    - "ssim"
+    - "lpips"
+
+# Checkpointing
+checkpointing:
+  save_dir: "checkpoints/stage4_nerf"
+  filename: "stage4_nerf_{epoch:02d}_{val_loss:.4f}"
+  save_last: true
+  save_top_k: 3
+  
+  # Resume from checkpoint
+  resume_from_checkpoint: null
+
+# Logging
+logging:
+  log_dir: "logs/stage4_nerf"
+  log_every_n_steps: 100
+  val_log_every_n_epochs: 1
+  
+  # TensorBoard logging
+  tensorboard:
+    log_dir: "logs/stage4_nerf/tensorboard"
+    log_graph: true
+  
+  # WandB logging (optional)
+  wandb:
+    project: "ctvo-stage4"
+    name: "nerf_training"
+    tags: ["stage4", "nerf", "multiview"]
+
+# Evaluation Settings
+evaluation:
+  output_dir: "results/stage4_multiview"
+  save_images: true
+  save_metrics: true
+  num_samples: 50
+  
+  # Multi-view generation
+  multiview:
+    num_views: 8
+    radius: 2.0
+    height: 0.0
+    camera_path: "circular"
+  
+  # Metrics to compute
+  metrics:
+    - "view_consistency"
+    - "sharpness"
+    - "color_consistency"
+    - "psnr"
+    - "ssim"
+
+# Rendering Settings
+rendering:
+  # Camera path generation
+  camera_path:
+    type: "circular"
+    radius: 2.0
+    height: 0.0
+    num_views: 8
+  
+  # Rendering quality
+  quality:
+    num_samples: 64
+    chunk_size: 1024
+    white_background: true
+  
+  # Output settings
+  output:
+    image_size: [256, 192]
+    save_format: "jpg"
+    quality: 95

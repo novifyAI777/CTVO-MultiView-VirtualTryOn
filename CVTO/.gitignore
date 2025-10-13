@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.pkl
+*.pth
+*.log
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Environment
+.env
+.venv/
+env/
+venv/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Pretrained models and large files
+**/pretrained_models/
+**/*.onnx
+**/*.pth
+**/*.tar
+**/*.zip
+**/*.h5
+**/flow_maps/
+**/wrapped_outputs/
+**/output/
+**/logs/
+
+# Raw or processed images
+data/raw/person_images/
+data/raw/cloth_images/
+data/processed/
