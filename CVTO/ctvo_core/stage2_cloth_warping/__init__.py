@@ -10,7 +10,8 @@ This module handles:
 from .UNet import UNet, DoubleConv
 from .GMM import GMM, FeatureExtractor, CorrelationLayer, WarpingLayer
 from .utils import (
-    pose_to_heatmap, 
+    pose_to_heatmap,
+    pose_tensor_to_json,
     load_warp_model, 
     preprocess_inputs, 
     warp_cloth_once,
@@ -28,6 +29,7 @@ __all__ = [
     'Stage2Processor',
     'run_stage2',
     'pose_to_heatmap',
+    'pose_tensor_to_json',
     'load_warp_model',
     'preprocess_inputs',
     'warp_cloth_once',

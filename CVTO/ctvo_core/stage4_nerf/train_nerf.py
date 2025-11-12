@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 import numpy as np
 
 from .model_nerf import NeRFModel, VolumeRenderer

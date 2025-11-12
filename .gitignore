@@ -88,6 +88,29 @@ outputs/
 samples/
 previews/
 
+# -----------------------------------
+# Stage outputs and processing directories
+# -----------------------------------
+# Stage 1 outputs (parsing maps and pose heatmaps)
+**/stage1_outputs/
+**/parsing_maps/
+**/pose_heatmaps/
+**/pose_keypoints/
+
+# Stage 2 outputs
+**/stage2_outputs/
+**/warped_cloth/
+
+# Stage 3 outputs
+**/stage3_outputs/
+
+# Stage 4 outputs
+**/stage4_outputs/
+
+# Annotation directories with generated data
+data/annotations/parsing_maps/
+data/annotations/pose_keypoints/
+
 # Keep structure placeholders
 !data/**/.gitkeep
 !results/.gitkeep

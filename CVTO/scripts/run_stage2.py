@@ -38,9 +38,9 @@ def main():
     parser.add_argument("--model_checkpoint", type=str,
                        default="ctvo_core/stage2_cloth_warping/pretrained_weights/unet_wrap.pth",
                        help="Path to model checkpoint")
-    parser.add_argument("--model_type", type=str, default="unet",
+    parser.add_argument("--model_type", type=str, default="gmm",
                        choices=["unet", "gmm"],
-                       help="Type of model to use")
+                       help="Type of model to use (default: gmm for unet_wrap.pth checkpoint)")
     parser.add_argument("--device", type=str, default="cpu",
                        help="Device to run on (cpu/cuda)")
     parser.add_argument("--visualize", action="store_true",

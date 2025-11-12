@@ -17,7 +17,7 @@ class Stage2Processor:
     
     def __init__(self, 
                  model_checkpoint: str,
-                 model_type: str = "unet",  # "unet" or "gmm"
+                 model_type: str = "gmm",  # "unet" or "gmm" (default: gmm for VITON checkpoints)
                  device: str = "cpu"):
         self.device = device
         self.model_type = model_type
@@ -43,7 +43,7 @@ class Stage2Processor:
             person_img: path to person image
             parsing_map: path to parsing map
             cloth_img: path to cloth image
-            pose_json: path to pose JSON
+            pose_json: path to pose JSON or .pt tensor file
             output_path: optional output path to save result
             
         Returns:
@@ -51,7 +51,7 @@ class Stage2Processor:
         """
         if self.model_type == "unet":
             # Use UNet-based warping
-            inp = preprocess_inputs(cloth_img, person_img, parsing_map, pose_json).unsqueeze(0).to(self.device)
+            inp = preprocess_inputs(cloth_img, person_img, parsing_map, pose_json, device=self.device).unsqueeze(0)
             
             with torch.no_grad():
                 warped_cloth = self.model(inp)[0].cpu()
@@ -61,34 +61,65 @@ class Stage2Processor:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 from torchvision.transforms import ToPILImage
                 ToPILImage()(warped_cloth).save(output_path)
-                print(f"Warped cloth saved → {output_path}")
+                print(f"Warped cloth saved -> {output_path}")
             
             return warped_cloth
             
         elif self.model_type == "gmm":
             # Use GMM-based warping
-            from torchvision.transforms import ToTensor, Normalize, Resize
+            from torchvision.transforms import ToTensor, Normalize, Resize, Compose
             from PIL import Image
             
-            transform = torch.nn.Sequential(
+            transform = Compose([
                 Resize((256, 192)),
                 ToTensor(),
                 Normalize([0.5]*3, [0.5]*3)
-            )
+            ])
             
             cloth_tensor = transform(Image.open(cloth_img).convert("RGB")).unsqueeze(0).to(self.device)
             person_tensor = transform(Image.open(person_img).convert("RGB")).unsqueeze(0).to(self.device)
             
+            # Load parsing map if available for VITONGMM
+            parsing_tensor = None
+            try:
+                if os.path.exists(parsing_map):
+                    parsing_tensor = transform(Image.open(parsing_map).convert("RGB")).unsqueeze(0).to(self.device)
+            except:
+                pass
+            
             with torch.no_grad():
-                flow = self.model(cloth_tensor, person_tensor)
-                warped_cloth = self.warping_layer(cloth_tensor, flow)[0].cpu()
+                # VITONGMM forward now accepts parsing_map
+                if parsing_tensor is not None:
+                    flow = self.model(cloth_tensor, person_tensor, parsing_map=parsing_tensor)
+                else:
+                    flow = self.model(cloth_tensor, person_tensor)
+                
+                # Validate flow before warping
+                if torch.isnan(flow).any() or torch.isinf(flow).any():
+                    print(f"Error: Invalid flow values detected (NaN/Inf)")
+                    print(f"  Flow stats: min={flow.min():.3f}, max={flow.max():.3f}, mean={flow.mean():.3f}")
+                    # Return original cloth as fallback
+                    warped_cloth = cloth_tensor[0].cpu()
+                else:
+                    warped_cloth = self.warping_layer(cloth_tensor, flow)[0].cpu()
+                
+                # Denormalize and clamp
                 warped_cloth = warped_cloth.mul_(0.5).add_(0.5).clamp_(0, 1)
+                
+                # Final validation: check if output is valid
+                if torch.isnan(warped_cloth).any() or torch.isinf(warped_cloth).any():
+                    print(f"Error: Invalid warped output detected (NaN/Inf)")
+                    # Return original cloth as fallback
+                    cloth_original = transform(Image.open(cloth_img).convert("RGB"))
+                    warped_cloth = cloth_original
+                elif warped_cloth.min() == warped_cloth.max():
+                    print(f"Warning: Output appears uniform (all same value)")
             
             if output_path:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 from torchvision.transforms import ToPILImage
                 ToPILImage()(warped_cloth).save(output_path)
-                print(f"Warped cloth saved → {output_path}")
+                print(f"Warped cloth saved -> {output_path}")
             
             return warped_cloth
 
@@ -108,7 +139,7 @@ def run_stage2(person_img: str,
         person_img: path to person image
         parsing_map: path to parsing map
         cloth_img: path to cloth image
-        pose_json: path to pose JSON
+        pose_json: path to pose JSON or .pt tensor file
         model_checkpoint: path to model checkpoint
         output_path: output path for warped cloth
         model_type: type of model ("unet" or "gmm")
