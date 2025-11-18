@@ -17,5 +17,17 @@ __author__ = "CTVO Team"
 # Import main modules for easy access
 from .stage1_parsing_pose import *
 from .stage2_cloth_warping import *
-from .stage3_fusion import *
-from .stage4_nerf import *
+
+# Stage 3 and 4 imports are optional (require pytorch_lightning)
+# Uncomment if you need Stage 3 or 4 functionality
+# from .stage3_fusion import *
+# from .stage4_nerf import *
+try:
+    from .stage3_fusion import *
+except ImportError:
+    pass  # pytorch_lightning not installed, skip Stage 3
+
+try:
+    from .stage4_nerf import *
+except ImportError:
+    pass  # pytorch_lightning not installed, skip Stage 4

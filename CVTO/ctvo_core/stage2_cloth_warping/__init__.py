@@ -1,37 +1,68 @@
 """
 Stage 2: Cloth Warping Module
 
-This module handles:
-- UNet-based cloth warping
-- GMM (Geometric Matching Module) for advanced warping
-- Integration with Stage 1 outputs
+Modern modular architecture for multi-view cloth warping.
+This module has been migrated from the old CP-VTON style to a clean, modular structure.
+
+New Structure:
+- models/: UNet architecture
+- datasets/: Dataset loaders for .pt tensors
+- trainers/: Training loop with L1 + perceptual loss
+- inference/: Inference wrapper for Stage 2 outputs
+- utils/: Mask generation, transforms, visualization, config
 """
 
-from .UNet import UNet, DoubleConv
-from .GMM import GMM, FeatureExtractor, CorrelationLayer, WarpingLayer
+# New modular imports
+from .models import UNet, DoubleConv
+from .datasets import Stage2Dataset, Stage2TensorDataset
+from .trainers import Stage2Trainer, Stage2Loss, PerceptualLoss
+from .inference import Stage2Inference, run_stage2_inference
 from .utils import (
-    pose_to_heatmap,
-    pose_tensor_to_json,
-    load_warp_model, 
-    preprocess_inputs, 
-    warp_cloth_once,
-    create_agnostic_parsing
+    Stage2Config,
+    get_train_transforms,
+    get_val_transforms,
+    load_pose_tensor,
+    preprocess_inputs,
+    generate_garment_mask,
+    generate_garment_mask_from_tensor,
+    refine_mask_with_morphology,
+    apply_mask_to_image,
+    tensor_to_image,
+    save_image,
+    visualize_batch,
+    visualize_output_channels
 )
-from .run_warp import Stage2Processor, run_stage2
 
 __all__ = [
+    # Models
     'UNet',
-    'DoubleConv', 
-    'GMM',
-    'FeatureExtractor',
-    'CorrelationLayer',
-    'WarpingLayer',
-    'Stage2Processor',
-    'run_stage2',
-    'pose_to_heatmap',
-    'pose_tensor_to_json',
-    'load_warp_model',
+    'DoubleConv',
+    
+    # Datasets
+    'Stage2Dataset',
+    'Stage2TensorDataset',
+    
+    # Trainers
+    'Stage2Trainer',
+    'Stage2Loss',
+    'PerceptualLoss',
+    
+    # Inference
+    'Stage2Inference',
+    'run_stage2_inference',
+    
+    # Utils
+    'Stage2Config',
+    'get_train_transforms',
+    'get_val_transforms',
+    'load_pose_tensor',
     'preprocess_inputs',
-    'warp_cloth_once',
-    'create_agnostic_parsing'
+    'generate_garment_mask',
+    'generate_garment_mask_from_tensor',
+    'refine_mask_with_morphology',
+    'apply_mask_to_image',
+    'tensor_to_image',
+    'save_image',
+    'visualize_batch',
+    'visualize_output_channels',
 ]
