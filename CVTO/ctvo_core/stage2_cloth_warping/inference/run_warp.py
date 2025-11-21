@@ -87,7 +87,7 @@ class Stage2Inference:
             person_img_path: path to person image
             cloth_img_path: path to cloth image
             parsing_map_path: path to parsing map
-            pose_tensor_path: path to pose .pt tensor file
+            pose_tensor_path: path to pose .pth tensor file
             output_path: optional path to save result
             return_tensor: whether to return tensor instead of saving
             
@@ -188,7 +188,7 @@ def run_stage2_inference(person_img: str,
         person_img: path to person image
         cloth_img: path to cloth image
         parsing_map: path to parsing map
-        pose_tensor: path to pose .pt tensor file
+        pose_tensor: path to pose .pth tensor file
         checkpoint_path: path to model checkpoint
         output_path: path to save output
         device: device to run on

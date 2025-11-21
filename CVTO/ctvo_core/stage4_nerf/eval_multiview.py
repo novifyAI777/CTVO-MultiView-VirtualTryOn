@@ -260,7 +260,7 @@ def eval_multiview(model_path: str,
 
 if __name__ == "__main__":
     # Example evaluation
-    model_path = "checkpoints/stage4_nerf/best_model.ckpt"
+    model_path = "checkpoints/stage4_nerf/best_model.pth"
     output_dir = "results/stage4_multiview"
     
     metrics = eval_multiview(model_path, output_dir)

@@ -24,8 +24,8 @@ class Stage2Dataset(Dataset):
     
     Loads:
     - Person RGB images (8 views per sample)
-    - Parsing maps (PNG or .pt, converted to K channels)
-    - Pose heatmaps (.pt files, P channels)
+    - Parsing maps (PNG or .pth, converted to K channels)
+    - Pose heatmaps (.pth files, P channels)
     - Cloth RGB images
     - Cloth masks
     """
@@ -83,8 +83,8 @@ class Stage2Dataset(Dataset):
         # Expected structure:
         # data_dir/
         #   images/train/<Gender>/<Tier>/<sample_id>/<view>.png
-        #   stage1_outputs/parsing_maps/<Gender>/<Tier>/<sample_id>/<view>.png (or .pt)
-        #   stage1_outputs/pose_heatmaps/<Gender>/<Tier>/<sample_id>/<view>.pt
+        #   stage1_outputs/parsing_maps/<Gender>/<Tier>/<sample_id>/<view>.png (or .pth)
+        #   stage1_outputs/pose_heatmaps/<Gender>/<Tier>/<sample_id>/<view>.pth
         #   clothes/<Gender>/<Tier>/<sample_id>/cloth.png
         #   stage2_inputs/cloth_masks/<Gender>/<Tier>/<sample_id>/cloth_mask.png
         
@@ -129,24 +129,24 @@ class Stage2Dataset(Dataset):
             # Find corresponding parsing map
             parsing_path = parsing_dir / rel_path
             if not parsing_path.exists():
-                # Try .pt extension
-                parsing_path_pt = parsing_dir / rel_path.with_suffix('.pt')
-                if parsing_path_pt.exists():
-                    parsing_path = parsing_path_pt
+                # Try .pth extension
+                parsing_path_pth = parsing_dir / rel_path.with_suffix('.pth')
+                if parsing_path_pth.exists():
+                    parsing_path = parsing_path_pth
                 else:
                     # Try alternative naming
                     alt_parsing = list(parsing_dir.rglob(f"{view_name}*.png")) + \
-                                 list(parsing_dir.rglob(f"{view_name}*.pt"))
+                                 list(parsing_dir.rglob(f"{view_name}*.pth"))
                     if alt_parsing:
                         parsing_path = alt_parsing[0]
                     else:
                         continue
             
             # Find corresponding pose heatmap
-            pose_path = pose_dir / rel_path.with_suffix('.pt')
+            pose_path = pose_dir / rel_path.with_suffix('.pth')
             if not pose_path.exists():
                 # Try alternative naming
-                alt_pose = list(pose_dir.rglob(f"{view_name}*.pt"))
+                alt_pose = list(pose_dir.rglob(f"{view_name}*.pth"))
                 if alt_pose:
                     pose_path = alt_pose[0]
                 else:
@@ -229,12 +229,12 @@ class Stage2Dataset(Dataset):
         """
         Load parsing map as K-channel tensor.
         
-        If .pt file: load directly
+        If .pth file: load directly
         If PNG: convert to one-hot encoding with K channels
         """
         parsing_path = Path(parsing_path)
         
-        if parsing_path.suffix == '.pt':
+        if parsing_path.suffix == '.pth':
             # Load as tensor
             parsing_tensor = torch.load(parsing_path, map_location='cpu')
             
@@ -285,7 +285,7 @@ class Stage2Dataset(Dataset):
         """
         Load pose heatmap as P-channel tensor.
         
-        Expected format: .pt file with shape [P, H, W] or [B, P, H, W]
+        Expected format: .pth file with shape [P, H, W] or [B, P, H, W]
         """
         pose_tensor = torch.load(pose_path, map_location='cpu')
         
@@ -378,9 +378,9 @@ class Stage2Dataset(Dataset):
 
 class Stage2TensorDataset(Dataset):
     """
-    Dataset that loads pre-processed .pt tensor files.
+    Dataset that loads pre-processed .pth tensor files.
     
-    Useful when data has been pre-processed and saved as .pt files
+    Useful when data has been pre-processed and saved as .pth files
     for faster loading during training.
     """
     
@@ -391,14 +391,14 @@ class Stage2TensorDataset(Dataset):
         Initialize dataset.
         
         Args:
-            data_dir: directory containing .pt tensor files
+            data_dir: directory containing .pth tensor files
             is_train: whether this is training dataset
         """
         self.data_dir = Path(data_dir)
         self.is_train = is_train
         
-        # Find all .pt files
-        pattern = "train_*.pt" if is_train else "val_*.pt"
+        # Find all .pth files
+        pattern = "train_*.pth" if is_train else "val_*.pth"
         self.samples = list(self.data_dir.rglob(pattern))
         
         print(f"Loaded {len(self.samples)} tensor samples from {self.data_dir}")

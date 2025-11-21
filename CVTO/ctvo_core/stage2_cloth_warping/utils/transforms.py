@@ -35,10 +35,10 @@ def load_pose_tensor(pose_path: str,
                      width: int = 192,
                      radius: int = 4) -> torch.Tensor:
     """
-    Load pose heatmap from .pt file as PyTorch tensor.
+    Load pose heatmap from .pth file as PyTorch tensor.
     
     Args:
-        pose_path: path to pose tensor file (.pt)
+        pose_path: path to pose tensor file (.pth)
         device: device to move tensor to
         height: target height for resizing
         width: target width for resizing
@@ -48,7 +48,7 @@ def load_pose_tensor(pose_path: str,
         pose heatmap tensor [3, H, W] with keypoints drawn as circles
     """
     try:
-        # Load tensor from .pt file
+        # Load tensor from .pth file
         pose_tensor = torch.load(pose_path, map_location='cpu')
         
         # Handle different tensor shapes

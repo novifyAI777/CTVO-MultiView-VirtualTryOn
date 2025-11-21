@@ -83,7 +83,7 @@ def main():
         ensure_dir(parsing_out_path.parent)
 
         # POSE OUTPUT PATH (preserves directory structure)
-        pose_out_path = Path(args.out_pose) / rel_path.with_suffix(".pt")
+        pose_out_path = Path(args.out_pose) / rel_path.with_suffix(".pth")
         ensure_dir(pose_out_path.parent)
 
         # Skip if both outputs exist

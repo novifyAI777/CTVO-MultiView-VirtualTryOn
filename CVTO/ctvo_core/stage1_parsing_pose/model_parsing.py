@@ -69,12 +69,12 @@ class HumanParsingModel:
         # Determine model type and load accordingly
         if model_path_lower.endswith('.onnx'):
             self._load_onnx_model()
-        elif model_path_lower.endswith('.pth') or model_path_lower.endswith('.pt'):
+        elif model_path_lower.endswith('.pth'):
             self._load_pytorch_model()
         else:
             raise ValueError(
                 f"Unsupported model format: {self.model_path}\n"
-                f"Supported formats: .onnx, .pth, .pt"
+                f"Supported formats: .onnx, .pth"
             )
         
         self.transform = T.Compose([

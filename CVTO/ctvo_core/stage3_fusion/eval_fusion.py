@@ -254,7 +254,7 @@ def eval_fusion(model_path: str,
 
 if __name__ == "__main__":
     # Example evaluation
-    model_path = "checkpoints/stage3_fusion/best_model.ckpt"
+    model_path = "checkpoints/stage3_fusion/best_model.pth"
     test_data_path = "data/test_data.json"
     output_dir = "results/stage3_evaluation"
     

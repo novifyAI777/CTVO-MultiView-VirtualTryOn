@@ -174,7 +174,7 @@ python scripts/run_stage3.py \
 # Evaluation
 python scripts/run_stage3.py \
     --mode eval \
-    --checkpoint checkpoints/stage3_fusion/best_model.ckpt \
+    --checkpoint checkpoints/stage3_fusion/best_model.pth \
     --data_dir data/custom_dataset \
     --output_dir results/stage3_previews
 ```
@@ -190,7 +190,7 @@ python scripts/run_stage4.py \
 # Evaluation
 python scripts/run_stage4.py \
     --mode eval \
-    --checkpoint checkpoints/stage4_nerf/best_model.ckpt \
+    --checkpoint checkpoints/stage4_nerf/best_model.pth \
     --output_dir results/stage4_multiview \
     --num_views 8
 ```

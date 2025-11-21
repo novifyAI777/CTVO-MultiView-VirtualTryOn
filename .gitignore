@@ -81,6 +81,7 @@ data/synthetic_augmented/
 data/marquis_viton_hd/
 data/custom_dataset/
 data/multiview_dataset/
+!data/multiview_dataset/stage1_outputs/
 results/
 checkpoints/
 logs/
@@ -92,9 +93,7 @@ previews/
 # Stage outputs and processing directories
 # -----------------------------------
 # Stage 1 outputs (parsing maps and pose heatmaps)
-**/stage1_outputs/
-**/parsing_maps/
-**/pose_heatmaps/
+# Removed: **/stage1_outputs/, **/parsing_maps/, **/pose_heatmaps/ to allow tracking
 **/pose_keypoints/
 
 # Stage 2 outputs

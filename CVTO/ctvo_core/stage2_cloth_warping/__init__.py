@@ -6,7 +6,7 @@ This module has been migrated from the old CP-VTON style to a clean, modular str
 
 New Structure:
 - models/: UNet architecture
-- datasets/: Dataset loaders for .pt tensors
+- datasets/: Dataset loaders for .pth tensors
 - trainers/: Training loop with L1 + perceptual loss
 - inference/: Inference wrapper for Stage 2 outputs
 - utils/: Mask generation, transforms, visualization, config

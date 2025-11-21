@@ -143,12 +143,12 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
     """
     Get corresponding Stage 1 outputs for a person image.
     
-    Note: Stage 1 outputs pose heatmaps as .pt files (PyTorch tensors).
-    Expected naming: back_view.pt, casual_view.pt, front_view.pt, etc.
-    These .pt files are loaded directly using torch.load() - NOT opened as images.
+    Note: Stage 1 outputs pose heatmaps as .pth files (PyTorch tensors).
+    Expected naming: back_view.pth, casual_view.pth, front_view.pth, etc.
+    These .pth files are loaded directly using torch.load() - NOT opened as images.
     
     Person image: images/train/{gender}/{tier}/{garment}/{view}.png
-    Pose heatmap: stage1_outputs/pose_heatmaps/{gender}/{tier}/{garment}/{view}.pt
+    Pose heatmap: stage1_outputs/pose_heatmaps/{gender}/{tier}/{garment}/{view}.pth
     
     Returns (parsing_map_path, pose_tensor_path)
     """
@@ -167,9 +167,9 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
         # Try to find by matching filename
         image_name = person_path.stem
         # Search for matching files
-        # Note: Only looking for .pt pose tensor files (not .png images)
+        # Note: Only looking for .pth pose tensor files (not .png images)
         parsing_files = list(stage1_parsing_dir.rglob(f"{image_name}*.png"))
-        pose_files = list(stage1_pose_dir.rglob(f"{image_name}*.pt"))
+        pose_files = list(stage1_pose_dir.rglob(f"{image_name}*.pth"))
         
         if parsing_files and pose_files:
             return parsing_files[0], pose_files[0]
@@ -177,8 +177,8 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
     
     # Construct paths
     parsing_path = stage1_parsing_dir / rel_path
-    # Note: Only looking for .pt pose tensor files (not .png images)
-    pose_path = stage1_pose_dir / rel_path.with_suffix('.pt')
+    # Note: Only looking for .pth pose tensor files (not .png images)
+    pose_path = stage1_pose_dir / rel_path.with_suffix('.pth')
     
     # If exact match doesn't exist, try to find by name
     if not parsing_path.exists():
@@ -187,8 +187,8 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
             parsing_path = parsing_files[0]
     
     if not pose_path.exists():
-        # Only search for .pt files (not .png)
-        pose_files = list(stage1_pose_dir.rglob(f"{person_path.stem}*.pt"))
+        # Only search for .pth files (not .png)
+        pose_files = list(stage1_pose_dir.rglob(f"{person_path.stem}*.pth"))
         if pose_files:
             pose_path = pose_files[0]
     
@@ -250,13 +250,13 @@ def process_combination(processor: Stage2Processor,
             }
         
         # Run Stage 2
-        # Note: pose_tensor is a .pt file that will be loaded directly as a PyTorch tensor
+        # Note: pose_tensor is a .pth file that will be loaded directly as a PyTorch tensor
         # using torch.load() in the preprocessing pipeline (not opened as an image)
         processor.warp_cloth(
             person_img=str(person_img),
             parsing_map=str(parsing_map),
             cloth_img=str(cloth_img),
-            pose_json=str(pose_tensor),  # .pt file - loaded as tensor via torch.load()
+            pose_json=str(pose_tensor),  # .pth file - loaded as tensor via torch.load()
             output_path=str(output_path)
         )
         
@@ -288,7 +288,7 @@ def main():
                        help="Directory containing Stage 1 parsing maps")
     parser.add_argument("--stage1_pose_dir", type=str,
                        default="data/multiview_dataset/stage1_outputs/pose_heatmaps",
-                       help="Directory containing Stage 1 pose tensors (.pt files only)")
+                       help="Directory containing Stage 1 pose tensors (.pth files only)")
     parser.add_argument("--output_dir", type=str,
                        default="data/multiview_dataset/stage2_outputs",
                        help="Output directory for Stage 2 results")
