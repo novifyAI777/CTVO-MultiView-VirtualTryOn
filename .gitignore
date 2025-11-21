@@ -120,6 +120,7 @@ data/annotations/pose_keypoints/
 # Models / Weights
 # -----------------------------------
 *.pt
+!data/multiview_dataset/stage1_outputs/pose_heatmaps/**/*.pt
 *.pth
 *.ckpt
 *.pkl
