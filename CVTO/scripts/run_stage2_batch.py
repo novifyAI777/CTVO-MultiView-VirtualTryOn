@@ -26,7 +26,7 @@ except ImportError:
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from ctvo_core.stage2_cloth_warping import Stage2Processor
+from ctvo_core.stage2_cloth_warping import Stage2Inference
 
 
 def should_skip_file(file_path: Path) -> bool:
@@ -52,6 +52,7 @@ def extract_person_path_info(person_path: Path, person_images_dir: Path) -> Tupl
     Extract gender, tier, and garment from person image path.
     
     Expected format: images/train/{gender}/{tier}/{garment}/{view}.png
+    Or: images/{gender}/{tier}/{garment}/{view}.png
     Example: images/train/Men/Tier 1/Blazer with dress pants/back_view.png
     
     Returns:
@@ -60,6 +61,10 @@ def extract_person_path_info(person_path: Path, person_images_dir: Path) -> Tupl
     try:
         rel_path = person_path.relative_to(person_images_dir)
         parts = rel_path.parts
+        
+        # Handle case where 'train' is in the path
+        if len(parts) > 0 and parts[0] == 'train':
+            parts = parts[1:]  # Remove 'train' from parts
         
         # Expected structure: [gender, tier, garment, filename]
         if len(parts) >= 4:
@@ -139,37 +144,38 @@ def find_matching_cloth(person_path: Path, cloth_dir: Path, person_images_dir: P
 
 
 def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path, 
-                       stage1_pose_dir: Path) -> Tuple[Path, Path]:
+                       stage1_pose_dir: Path, person_images_dir: Path) -> Tuple[Path, Path]:
     """
     Get corresponding Stage 1 outputs for a person image.
     
-    Note: Stage 1 outputs pose heatmaps as .pth files (PyTorch tensors).
-    Expected naming: back_view.pth, casual_view.pth, front_view.pth, etc.
-    These .pth files are loaded directly using torch.load() - NOT opened as images.
+    Note: Stage 1 outputs pose heatmaps as .pt or .pth files (PyTorch tensors).
+    Expected naming: back_view.pt, casual_view.pt, front_view.pt, etc.
+    These .pt/.pth files are loaded directly using torch.load() - NOT opened as images.
     
     Person image: images/train/{gender}/{tier}/{garment}/{view}.png
-    Pose heatmap: stage1_outputs/pose_heatmaps/{gender}/{tier}/{garment}/{view}.pth
+    Pose heatmap: stage1_outputs/pose_heatmaps/{gender}/{tier}/{garment}/{view}.pt or .pth
     
     Returns (parsing_map_path, pose_tensor_path)
     """
     # Get relative path from images directory
-    # Assuming structure: images/train/Gender/Tier/.../image.png
+    # Handle both images/ and images/train/ structures
     rel_path = None
-    for parent in person_path.parents:
-        if 'images' in parent.parts or 'train' in parent.parts:
-            try:
-                rel_path = person_path.relative_to(parent)
-                break
-            except ValueError:
-                continue
     
-    if rel_path is None:
-        # Try to find by matching filename
+    try:
+        # Get relative path from person_images_dir
+        rel_path = person_path.relative_to(person_images_dir)
+        
+        # Remove 'train' if present
+        if rel_path.parts and rel_path.parts[0] == 'train':
+            rel_path = Path(*rel_path.parts[1:])
+    except (ValueError, IndexError):
+        # Fallback: try to find by matching filename
         image_name = person_path.stem
-        # Search for matching files
-        # Note: Only looking for .pth pose tensor files (not .png images)
+        # Search for matching files - check both .pt and .pth extensions
         parsing_files = list(stage1_parsing_dir.rglob(f"{image_name}*.png"))
-        pose_files = list(stage1_pose_dir.rglob(f"{image_name}*.pth"))
+        pose_files_pt = list(stage1_pose_dir.rglob(f"{image_name}*.pt"))
+        pose_files_pth = list(stage1_pose_dir.rglob(f"{image_name}*.pth"))
+        pose_files = pose_files_pt + pose_files_pth
         
         if parsing_files and pose_files:
             return parsing_files[0], pose_files[0]
@@ -177,8 +183,11 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
     
     # Construct paths
     parsing_path = stage1_parsing_dir / rel_path
-    # Note: Only looking for .pth pose tensor files (not .png images)
-    pose_path = stage1_pose_dir / rel_path.with_suffix('.pth')
+    
+    # Try .pt first (PyTorch standard), then .pth
+    pose_path = stage1_pose_dir / rel_path.with_suffix('.pt')
+    if not pose_path.exists():
+        pose_path = stage1_pose_dir / rel_path.with_suffix('.pth')
     
     # If exact match doesn't exist, try to find by name
     if not parsing_path.exists():
@@ -187,15 +196,17 @@ def get_stage1_outputs(person_path: Path, stage1_parsing_dir: Path,
             parsing_path = parsing_files[0]
     
     if not pose_path.exists():
-        # Only search for .pth files (not .png)
-        pose_files = list(stage1_pose_dir.rglob(f"{person_path.stem}*.pth"))
+        # Search for both .pt and .pth files
+        pose_files_pt = list(stage1_pose_dir.rglob(f"{person_path.stem}*.pt"))
+        pose_files_pth = list(stage1_pose_dir.rglob(f"{person_path.stem}*.pth"))
+        pose_files = pose_files_pt + pose_files_pth
         if pose_files:
             pose_path = pose_files[0]
     
     return parsing_path, pose_path
 
 
-def process_combination(processor: Stage2Processor, 
+def process_combination(processor: Stage2Inference, 
                        person_img: Path,
                        cloth_img: Path,
                        parsing_map: Path,
@@ -216,6 +227,9 @@ def process_combination(processor: Stage2Processor,
     else:
         # Fallback: use relative path structure
         rel_path = person_img.relative_to(person_images_dir)
+        # Remove 'train' if present
+        if rel_path.parts and rel_path.parts[0] == 'train':
+            rel_path = Path(*rel_path.parts[1:])
         output_subdir = output_dir / rel_path.parent
         output_subdir.mkdir(parents=True, exist_ok=True)
         person_name = person_img.stem
@@ -250,13 +264,13 @@ def process_combination(processor: Stage2Processor,
             }
         
         # Run Stage 2
-        # Note: pose_tensor is a .pth file that will be loaded directly as a PyTorch tensor
+        # Note: pose_tensor is a .pt or .pth file that will be loaded directly as a PyTorch tensor
         # using torch.load() in the preprocessing pipeline (not opened as an image)
         processor.warp_cloth(
-            person_img=str(person_img),
-            parsing_map=str(parsing_map),
-            cloth_img=str(cloth_img),
-            pose_json=str(pose_tensor),  # .pth file - loaded as tensor via torch.load()
+            person_img_path=str(person_img),
+            cloth_img_path=str(cloth_img),
+            parsing_map_path=str(parsing_map),
+            pose_tensor_path=str(pose_tensor),  # .pt or .pth file - loaded as tensor via torch.load()
             output_path=str(output_path)
         )
         
@@ -288,7 +302,7 @@ def main():
                        help="Directory containing Stage 1 parsing maps")
     parser.add_argument("--stage1_pose_dir", type=str,
                        default="data/multiview_dataset/stage1_outputs/pose_heatmaps",
-                       help="Directory containing Stage 1 pose tensors (.pth files only)")
+                       help="Directory containing Stage 1 pose tensors (.pt or .pth files)")
     parser.add_argument("--output_dir", type=str,
                        default="data/multiview_dataset/stage2_outputs",
                        help="Output directory for Stage 2 results")
@@ -366,9 +380,8 @@ def main():
     
     print("Initializing Stage 2 processor...")
     try:
-        processor = Stage2Processor(
-            str(model_checkpoint),
-            model_type=args.model_type,
+        processor = Stage2Inference(
+            checkpoint_path=str(model_checkpoint),
             device=args.device
         )
         print("[OK] Processor initialized successfully\n")
@@ -430,7 +443,7 @@ def main():
         
         # Get Stage 1 outputs
         parsing_map, pose_tensor = get_stage1_outputs(
-            person_img, stage1_parsing_dir, stage1_pose_dir
+            person_img, stage1_parsing_dir, stage1_pose_dir, person_images_dir
         )
         
         if parsing_map is None or pose_tensor is None:
@@ -564,4 +577,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

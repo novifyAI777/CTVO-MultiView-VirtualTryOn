@@ -25,7 +25,7 @@ class Stage2Dataset(Dataset):
     Loads:
     - Person RGB images (8 views per sample)
     - Parsing maps (PNG or .pth, converted to K channels)
-    - Pose heatmaps (.pth files, P channels)
+    - Pose heatmaps (.pth or .pt files, P channels)
     - Cloth RGB images
     - Cloth masks
     """
@@ -84,7 +84,7 @@ class Stage2Dataset(Dataset):
         # data_dir/
         #   images/train/<Gender>/<Tier>/<sample_id>/<view>.png
         #   stage1_outputs/parsing_maps/<Gender>/<Tier>/<sample_id>/<view>.png (or .pth)
-        #   stage1_outputs/pose_heatmaps/<Gender>/<Tier>/<sample_id>/<view>.pth
+        #   stage1_outputs/pose_heatmaps/<Gender>/<Tier>/<sample_id>/<view>.pth (or .pt)
         #   clothes/<Gender>/<Tier>/<sample_id>/cloth.png
         #   stage2_inputs/cloth_masks/<Gender>/<Tier>/<sample_id>/cloth_mask.png
         
@@ -142,15 +142,24 @@ class Stage2Dataset(Dataset):
                     else:
                         continue
             
-            # Find corresponding pose heatmap
+            # Find corresponding pose heatmap - FIX: Check both .pth and .pt extensions
             pose_path = pose_dir / rel_path.with_suffix('.pth')
             if not pose_path.exists():
-                # Try alternative naming
+                # Try .pt extension (PyTorch standard)
+                pose_path = pose_dir / rel_path.with_suffix('.pt')
+            
+            if not pose_path.exists():
+                # Try alternative naming with .pth
                 alt_pose = list(pose_dir.rglob(f"{view_name}*.pth"))
                 if alt_pose:
                     pose_path = alt_pose[0]
                 else:
-                    continue
+                    # Try alternative naming with .pt
+                    alt_pose = list(pose_dir.rglob(f"{view_name}*.pt"))
+                    if alt_pose:
+                        pose_path = alt_pose[0]
+                    else:
+                        continue
             
             # Find matching cloth for this sample
             # Try normalized tier first, then original tier
@@ -285,7 +294,7 @@ class Stage2Dataset(Dataset):
         """
         Load pose heatmap as P-channel tensor.
         
-        Expected format: .pth file with shape [P, H, W] or [B, P, H, W]
+        Expected format: .pth or .pt file with shape [P, H, W] or [B, P, H, W]
         """
         pose_tensor = torch.load(pose_path, map_location='cpu')
         

@@ -27,7 +27,9 @@ def check_environment():
     print(f"PyTorch Version: {torch.__version__}")
     print(f"CUDA Available: {torch.cuda.is_available()}")
     if torch.cuda.is_available():
-        print(f"CUDA Version: {torch.version.cuda}")
+        # Fix: Use getattr to avoid type checker error with torch.version.cuda
+        cuda_version = getattr(torch.version, 'cuda', 'N/A')
+        print(f"CUDA Version: {cuda_version}")
         print(f"GPU Device: {torch.cuda.get_device_name(0)}")
         print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
     else:
@@ -121,6 +123,15 @@ def main():
         import importlib.util
         script_path = project_root / "scripts" / "run_stage3.py"
         spec = importlib.util.spec_from_file_location("run_stage3", script_path)
+        
+        # Fix: Check if spec is None before using it
+        if spec is None:
+            raise ImportError(f"Could not load spec from {script_path}")
+        
+        # Fix: Check if spec.loader is None before using it
+        if spec.loader is None:
+            raise ImportError(f"Could not get loader from spec for {script_path}")
+        
         run_stage3_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(run_stage3_module)
         run_stage3 = run_stage3_module.main
@@ -153,4 +164,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
